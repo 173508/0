@@ -1,0 +1,139 @@
+# Project Information
+site_name: पारदर्शी टिप्पणी पुस्तक
+site_description: भविष्य के मस्तिष्क की स्वास्थ्य हेतु
+site_author: 173508
+copyright: >-
+  Copyright &copy; 1998 - 2024 <b>173508</b>. 
+  All rights reserved.
+  <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/" targe="_blank" rel="noopener"><code style="background-color: indigo;color: white;font-size: +1.3em;">SPDX: CC-BY-NC-ND-4.0</code></a>
+
+# Site Configuration
+docs_dir: act/docs
+use_directory_urls: true
+strict: true
+site_dir: public
+
+# Theme Configuration
+theme:
+  name: material
+  features:
+    - navigation.tabs
+    - navigation.top
+    # - navigation.instant
+    - navigation.tracking
+    - navigation.indexes
+    - search.suggest
+    - search.highlight
+    - search.share
+    - content.code.copy
+    - content.action.edit
+    - content.action.view
+    - toc.follow
+    # - navigation.sections
+    # - navigation.expand
+    # - toc.integrate
+    # - content.tabs.link
+    # - content.code.annotation
+
+  palette:
+    # Palette toggle for light mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: deep orange
+      accent: lime
+      toggle:
+        icon: material/flare
+        name: Dark mode
+
+    # Palette toggle for dark mode (Default)
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: deep orange
+      accent: light green
+      toggle:
+        icon: material/weather-night
+        name: Light mode
+
+  font:
+    text: Open Sans
+    # code: Consolas
+
+  icon:
+    # logo: material/gamepad-variant
+    repo: fontawesome/brands/github
+    # edit: material/file-edit-outline
+    # view: material/file-eye-outline
+  # favicon: _site/favicon.ico
+
+extra:
+  generator: false
+  consent:
+    title: Cookie consent
+    actions:
+      - accept
+      - reject
+    description: >-
+      We use cookies to recognize your repeated visits and preferences, as well
+      as to measure the effectiveness of our documentation and whether users
+      find what they're searching for. With your consent, you're helping us to
+      make our documentation better.
+  extra_css:
+    - _site/mkdocs-extra.css
+  extra_javascript:
+
+plugins:
+  - search:
+      lang: en
+  - minify:
+      minify_html: true
+  - no-sitemap
+  - mkdocs-video
+
+markdown_extensions:
+  - pymdownx.highlight:
+      # auto_title: true
+      anchor_linenums: true
+      # linenums: true
+      use_pygments: true
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets:
+      check_paths: true
+  - pymdownx.critic
+  - pymdownx.caret
+  - pymdownx.keys:
+      separator: "+"
+      key_map:
+        click: "Click"
+        left-click: "Left Click"
+        right-click: "Right Click"
+  - pymdownx.mark
+  - pymdownx.tilde
+  - pymdownx.smartsymbols
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - admonition
+  - pymdownx.arithmatex:
+      generic: true
+  - footnotes
+  - def_list
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - attr_list
+  - md_in_html
+  - abbr
+  - tables
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.escapeall:
+      hardbreak: false
+      nbsp: false
+  - toc:
+      permalink: true

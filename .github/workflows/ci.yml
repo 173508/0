@@ -1,0 +1,34 @@
+name: ci
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+  # Listen to a repository dispatch event by the name of `dispatch-event`
+  repository_dispatch:
+    types: [dispatch-event]
+permissions:
+  contents: write
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          # Repository name with owner. For example, actions/checkout
+          # Default: ${{ github.repository }}
+          repository: "${{ secrets.SRC_REPO }}"
+          path: "act"
+          ssh-key: "${{ secrets.SSH_KEY }}"
+      - uses: actions/setup-python@v4
+        with:
+          python-version: 3.x
+      - uses: actions/cache@v3
+        with:
+          key: ${{ github.ref }}
+          path: .cache
+      - run: pip install mkdocs-material
+      - run: pip install pillow cairosvg mkdocs-minify-plugin
+      - run: pip install mkdocs-no-sitemap-plugin mkdocs-video
+      - run: mkdocs gh-deploy --force
