@@ -1,0 +1,32 @@
+/* content area width fixed max */
+.md-grid {
+    max-width: 1560px;
+}
+
+@media screen and (min-width: 100em) {
+
+    /* [screen medium +]: Set base `font-size` to `11px` i.e. `137.5%` */
+    html {
+        font-size: 137.5%
+    }
+}
+
+@media screen and (min-width: 125em) {
+
+    /* [screen large +]: Set base `font-size` to `12px` i.e. `150%` */
+    html {
+        font-size: 137.5%
+    }
+}
+
+/*
+.k  = Keyword,
+.kd = Keyword, declaration
+.kn = Keyword, namespace
+.kp = Keyword, pseudo
+.kr = Keyword, reserved
+.kt = Keyword, type
+*/
+.highlight .kt {
+    color: var(--md-code-hl-type-color);
+}
