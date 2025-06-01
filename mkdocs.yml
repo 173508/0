@@ -81,8 +81,8 @@ extra:
     - _site/mkdocs-extra.css
     #- https://unpkg.com/katex@0/dist/katex.min.css
   extra_javascript:
-    - _site/mathjax.js
-    #- _site/katex.js
+    - javascripts/mathjax.js
+    #- javascripts/katex.js
     - https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js
     #- https://unpkg.com/katex@0/dist/katex.min.js
     #- https://unpkg.com/katex@0/dist/contrib/auto-render.min.js
