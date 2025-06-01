@@ -77,15 +77,15 @@ extra:
       as to measure the effectiveness of our documentation and whether users
       find what they're searching for. With your consent, you're helping us to
       make our documentation better.
-  extra_css:
-    - _site/mkdocs-extra.css
-    #- https://unpkg.com/katex@0/dist/katex.min.css
-  extra_javascript:
-    - javascripts/mathjax.js
-    #- javascripts/katex.js
-    - https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js
-    #- https://unpkg.com/katex@0/dist/katex.min.js
-    #- https://unpkg.com/katex@0/dist/contrib/auto-render.min.js
+extra_css:
+  - _site/mkdocs-extra.css
+  - https://unpkg.com/katex@0/dist/katex.min.css
+extra_javascript:
+  - javascripts/mathjax.js
+  - javascripts/katex.js
+  - https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js
+  - https://unpkg.com/katex@0/dist/katex.min.js
+  - https://unpkg.com/katex@0/dist/contrib/auto-render.min.js
 
 plugins:
   - search:
