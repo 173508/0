@@ -1,0 +1,33 @@
+\ Poor Man's Case statement
+\  - by Klaus Schleisiek
+\ FORTH2020 GROUP ZOOM MEETING #32
+\ What we do with Forth - saturday 11-February 2023 14:00 Hrs. UTC
+
+\ Note: Currently works only in GForth as
+\  #BS and #CR etc are not defined yet.
+
+\ : ?EXIT if exit then ; \ If True then Exit control
+
+: case? ( input match -- {input ff}|{tt} ) 
+  over   \ i m i
+  =      \ i (i==m)
+  dup    \ i (i==m) (i==m)
+  if     \ i (i==m) \\ If Equal
+    nip  \ (i==m)
+  then
+         \ i (i==m) \\ If Not Equal
+         \ (i==m)   \\ If Equal
+  ;
+
+: decode-key ( key -- )
+  #BS case? IF #BS emit space #BS emit EXIT THEN ( Use Ctrl + H )
+  #CR case? ?EXIT ( if exit then = in short )
+  #LF case? IF cr EXIT THEN ( Use Ctrl + J )
+  emit
+  ;
+
+: terminal ( -- )
+  BEGIN key #ESC case? ?EXIT
+    decode-key
+  AGAIN
+;
