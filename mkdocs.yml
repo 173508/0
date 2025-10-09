@@ -54,8 +54,8 @@ theme:
         icon: material/weather-night
         name: Light mode
 
-  font:
-    text: Open Sans
+  font: false
+    # text: Open Sans
     # code: Consolas
 
   icon:
