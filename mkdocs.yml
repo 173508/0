@@ -7,6 +7,8 @@ copyright: >-
   All rights reserved.
   <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/" targe="_blank" rel="noopener"><code style="background-color: indigo;color: white;font-size: +1.3em;">SPDX: CC-BY-NC-ND-4.0</code></a>
 
+#edit_uri: blob/main/docs/
+
 # Site Configuration
 docs_dir: act/docs
 use_directory_urls: true
@@ -54,7 +56,8 @@ theme:
         icon: material/weather-night
         name: Light mode
 
-  font: false
+  font:
+    false
     # text: Open Sans
     # code: Consolas
 
@@ -79,19 +82,16 @@ extra:
       make our documentation better.
 extra_css:
   - _site/mkdocs-extra.css
-  - https://unpkg.com/katex@0/dist/katex.min.css
+
 extra_javascript:
   - javascripts/mathjax.js
-  - javascripts/katex.js
-  - https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js
-  - https://unpkg.com/katex@0/dist/katex.min.js
-  - https://unpkg.com/katex@0/dist/contrib/auto-render.min.js
 
 plugins:
   - search:
       lang: en
   - minify:
       minify_html: true
+  - privacy # built-in; rewrites external links to local copies
   - no-sitemap
   - mkdocs-video
 
@@ -121,8 +121,6 @@ markdown_extensions:
   - pymdownx.tasklist:
       custom_checkbox: true
   - admonition
-  - pymdownx.arithmatex:
-      generic: true
   - footnotes
   - def_list
   - pymdownx.details
