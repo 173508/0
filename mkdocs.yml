@@ -91,7 +91,6 @@ plugins:
       lang: en
   - minify:
       minify_html: true
-  - privacy # built-in; rewrites external links to local copies
   - no-sitemap
   - mkdocs-video
 
