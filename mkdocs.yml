@@ -85,6 +85,7 @@ extra_css:
 
 extra_javascript:
   - javascripts/mathjax.js
+  - javascripts/tex-mml-chtml.js
 
 plugins:
   - search:
@@ -119,6 +120,8 @@ markdown_extensions:
       alternate_style: true
   - pymdownx.tasklist:
       custom_checkbox: true
+  - pymdownx.arithmatex:
+      generic: true
   - admonition
   - footnotes
   - def_list
