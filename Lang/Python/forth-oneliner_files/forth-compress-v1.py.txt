@@ -1,0 +1,58 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+#####################################################
+### Script to compress Forth words into single line
+#####################################################
+__copyright__ = "Copyright (C) 2023 173508"
+__author__ = "173508"
+
+### Version: v1.0 - Initial Release
+__version__ = "1.0"
+
+### License: Apache License, Version 2.0
+##  https://www.apache.org/licenses/LICENSE-2.0.html
+__license__ = "Apache License, Version 2.0"
+#####################################################
+
+# String Containing the Forth Word
+s=r"""
+
+: Guess-num2 ( num guess -- num[wrong] ) 
+   2DUP =               \ n g (g=n)
+   IF ." CORRECT" 2DROP \ (Empty)
+    EXIT 
+   THEN
+   OVER SWAP <          \ n (n<g)
+   IF ." TOO HIGH"      \ n
+    EXIT
+   THEN 
+   ." TOO LOW"          \ n
+;
+
+"""
+
+# Break into Lines
+sn = [ a.strip() for a in s.splitlines() if len(a) != 0 ]
+# To Store the Filtered String
+sfiltered = []
+
+# Remove Comments
+for a in sn:
+    # Remove the Stash Comments Parts
+    if "\\" in a:
+        a = a.split("\\")[0]
+        a = a.strip()
+        
+    # Brackets
+    if ('(' in a) and (')' in a):
+        # Remove only whats in the brackets
+        p = a.split('(')[0]
+        n = a.split(')')[1]
+        # Join them Back and add into the filtered location
+        sfiltered.append(p.strip() + " " + n.strip())
+    else:
+        # Normal parts
+        sfiltered.append(a)
+
+# Print the Result final joined string
+print(" ".join(sfiltered))

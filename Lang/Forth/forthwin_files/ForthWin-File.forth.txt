@@ -1,0 +1,90 @@
+: range-check ( n low-limit hi-limit -- { l<=n && n<h ) 
+  rot dup rot < \ low n (n<hi)
+  -ROT          \ (n<hi) low n
+  <=            \ (n<hi) (low<=n)
+  AND           \ ((n<hi)AND(1ow<=n))
+;
+: 2OVER1 over >R ROT DUP >R ROT ROT R> R> ;
+\ Starting Forth - Chapter 4 Problem 7
+: Guess-num ( num guess -- num[wrong] ) 
+   OVER SWAP DUP -ROT = \ n g (g=n)
+   IF ." CORRECT" 2DROP \ (Empty)
+    ELSE 
+     OVER SWAP <        \ n (n<g)
+      IF ." TOO HIGH"   \ n
+        ELSE 
+         ." TOO LOW"    \ n
+      THEN 
+   THEN ;
+\ Starting Forth - Chapter 4 Problem 7
+\  - Forth has 2DUP that does the `OVER SWAP DUP -ROT`
+\  - Suggestion by Phillip Eaton (use EXIT)
+\  - Suggestion by Christian Hinse 
+\    (Create a Short Version for Serial Transmission)
+: Guess-num2 ( num guess -- num[wrong] ) 
+   2DUP =               \ n g (n=g)
+   IF ." CORRECT" 2DROP \ (Empty)
+    EXIT 
+   THEN
+   OVER >               \ n (g>n)
+   IF ." TOO HIGH"      \ n
+    EXIT
+   THEN 
+   ." TOO LOW"          \ n
+;
+\ : Guess-num2  2DUP = IF ." CORRECT" 2DROP EXIT THEN OVER SWAP < IF ." TOO HIGH" EXIT THEN ." TOO LOW" ;
+
+\ Upward Rounding Percentage Calculator
+: R% ( n p -- n*p/100 ) 
+  10 */ 5 + 10 / ;
+
+\ Rational Approximation to Multiply with PI constant
+: PI ( n -- n n*PI ) 
+  DUP 355 113 */ ;
+
+\ Chapter 5 Solutions
+: sol1 ( a b c -- -ab/c ) */ NEGATE ;
+: sol2 ( a b c d -- n-max ) max max max . ;
+: sol3-f-to-c ( deg F -- deg C ) 32 - 5 9 */ ;
+: sol3-c-to-f ( deg C -- deg F ) 9 5 */ 32 + ;
+: sol3-c-to-k ( deg C -- deg K ) 273 + ;
+: sol3-k-to-c ( deg K -- deg c ) 273 - ;
+
+\ Chapter 6 Solutions
+: c6STARS ( n -- ) 0 ?DO ." *" LOOP ;
+: c6BOX ( n r -- ) 0 ?DO ( Main Loop )
+  DUP c6STARS
+  CR
+  ( Main Loop End ) LOOP 
+  DROP ;
+: c6\STARS ( r -- ) 0 ?DO ( Main Loop ) 
+  I SPACES
+  10 c6STARS
+  CR
+  ( Main Loop End ) LOOP ;
+: c6/STARS ( r -- ) DUP 0 ?DO ( Main Loop )
+  DUP I - SPACES
+  10 c6STARS
+  CR
+  ( Main Loop End ) LOOP 
+  DROP ;
+: c6/STARS2 ( r -- ) BEGIN ( Main Loop )
+  1- ( Reduce the Count )
+  DUP SPACES ( Adjusted as per the Current state of counter )
+  10 c6STARS
+  CR
+  DUP 0= ( Checking at UNTIL  - false to continue )
+  ( Main Loop End ) UNTIL
+  DROP ;
+: c6DIAMONDS ( r -- ) 0 ?DO ( Outer Loop )
+  10 0 DO ( Top Loop )
+  10 I - SPACES 
+  I 2 * 1 + c6STARS
+  CR
+  ( Top Loop End ) LOOP
+  11 0 DO ( Bottom Loop )
+  I SPACES 
+  10 I - 2 * 1 + c6STARS
+  CR
+  ( Bottom Loop End ) LOOP
+  ( Outer Loop End ) LOOP ;

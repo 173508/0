@@ -1,0 +1,10 @@
+\ Toggle the Onboard LED of ESP32 and wait until any key is pressed.
+: maxtoggle ( -- )
+  LED OUTPUT pinMode 
+  begin
+    HIGH LED pin
+    100 ms
+    LOW LED pin
+    100 ms
+    key? 
+  until ;

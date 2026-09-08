@@ -1,0 +1,42 @@
+\ This program "compress" multiline forth definition into
+\ single line, removes comments and prints it to console.
+\ Just put your definition in between [TEXT ... TEXT]
+\ Tested with GForth, ForthWin, Win32Forth
+\ -VG
+\ By Vladimir Gumenuk over Facebook 
+\ Link https://www.facebook.com/groups/759709845342071/posts/884308052882249/?comment_id=885234992789555&__cft__[0]=AZVkNIk7bwUdybx8JwOt9QeW2COUtaTbFzjp5edWqHl_wg3uHCx3pcpv60q53iPTpeK1397HvceSiCKVr1A72PVI4lPzkVnUH3l7_rDmm0rd--a21zxMzPJvUz1RLk2PU1xuoNIUTcp6anzySqVjRxzprI7Fuo325Slig0xCVb1rGw&__tn__=R]-R
+
+VARIABLE ctrl-pass TRUE ctrl-pass !
+\ fetch line and stop when needed
+: get-line ( -- f ) ctrl-pass @ IF REFILL ELSE FALSE THEN ;
+
+\ fetch word from input buffer
+: token ( -- caddr|0 ) BL WORD COUNT 0= IF DROP 0 ELSE 1 - THEN ;
+: \comment? ( caddr -- f ) 1+ C@ [CHAR] \ = ;
+: (comment? ( caddr -- f ) 1+ C@ [CHAR] ( = ;
+: end-text? ( caddr -- f ) COUNT S" TEXT]" COMPARE 0= ;
+
+: parse-line ( -- )                                \ this does the job
+BEGIN token ?DUP WHILE
+DUP \comment? IF DROP EXIT ELSE                    \ skip line
+DUP (comment? IF DROP ['] ( EXECUTE ELSE           \ remove comments ( )
+DUP end-text? IF DROP FALSE ctrl-pass ! REFILL ELSE \ all done
+COUNT TYPE SPACE THEN THEN THEN                     \ output token to console
+REPEAT ;
+
+: [TEXT CR BEGIN get-line WHILE parse-line REPEAT CR DROP;
+
+\ put your text here:
+[TEXT
+\ Starting Forth - Chapter 4 Problem 7
+: Guess-num ( num guess -- num[wrong] )
+  OVER SWAP DUP -ROT = \ n g (g=n)
+  IF ." CORRECT" 2DROP \ (Empty)
+  ELSE
+    OVER SWAP < \ n (n<g)
+    IF ." TOO HIGH" \ n
+    ELSE
+      ." TOO LOW" \ n
+    THEN
+  THEN ;
+TEXT]
