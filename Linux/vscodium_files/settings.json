@@ -1,0 +1,131 @@
+{
+  // @ Editor Settings
+  "telemetry.telemetryLevel": "off",
+  "chat.disableAIFeatures": true, // Disable all AI Features
+  "git.addAICoAuthor": "off", // AI Co-Author Off
+  "editor.aiStats.enabled": false, // Disable Stats
+  "http.proxy": "https://127.0.0.1:65000", // Prevent Internet connection
+  "files.associations": {
+    "*.tmpl": "html",
+    "*.tpl": "html",
+  },
+  "files.eol": "\n", // Default to Linux EOL
+  "files.defaultLanguage": "markdown",
+  "files.autoSave": "afterDelay", // Auto Save Enabled
+  "editor.rulers": [
+    80,
+    120
+  ],
+  "workbench.colorTheme": "Dark Modern",
+  "workbench.startupEditor": "none",
+  "workbench.editorAssociations": {
+    "*.md": "default",
+    //"*.pdf": "cweijan.officeViewer"
+  },
+  "workbench.iconTheme": "material-icon-theme",
+  "workbench.enableExperiments": false,
+  "workbench.editor.enablePreview": false,
+  // "workbench.editor.showTabs": false,
+  // "workbench.activityBar.visible": false,
+  "editor.minimap.enabled": false,
+  "editor.cursorWidth": 5,
+  "editor.cursorSmoothCaretAnimation": "on",
+  "editor.semanticHighlighting.enabled": true,
+  "editor.renderControlCharacters": true,
+  "editor.fontSize": 16,
+  "editor.fontFamily": "'Bitstream Vera Sans Mono', 'DejaVu Sans Mono', 'Roboto Mono', 'Source Code Pro','Droid Sans Mono', 'monospace', monospace",
+  "editor.formatOnSave": true,
+  "editor.showFoldingControls": "always",
+  "editor.accessibilitySupport": "off",
+  "editor.renderWhitespace": "all",
+  "editor.tabSize": 4,
+  "editor.semanticTokenColorCustomizations": {
+    "enabled": true
+  },
+  "[javascript]": {
+    "editor.tabSize": 2
+  },
+  "[json]": {
+    "editor.tabSize": 2,
+    "editor.formatOnSave": false
+  },
+  "[markdown]": {
+    "editor.tabSize": 4,
+    "editor.insertSpaces": true,
+    "editor.detectIndentation": false
+  },
+  "explorer.confirmDelete": false,
+  "git.openRepositoryInParentFolders": "never",
+  "terminal.integrated.cursorStyle": "block",
+  "terminal.integrated.cursorBlinking": true,
+  "terminal.integrated.copyOnSelection": true,
+  "terminal.integrated.defaultProfile.windows": "Git Bash",
+  "terminal.integrated.fontSize": 14,
+  "terminal.integrated.profiles.windows": {
+    "PowerShell": {
+      "source": "PowerShell",
+      "icon": "terminal-powershell"
+    },
+    "Command Prompt": {
+      "path": [
+        "${env:windir}\\Sysnative\\cmd.exe",
+        "${env:windir}\\System32\\cmd.exe"
+      ],
+      "args": [],
+      "icon": "terminal-cmd"
+    },
+  },
+  // "terminal.integrated.defaultProfile.linux": "bash",
+  // "terminal.integrated.defaultProfile.linux": "bash-flatpak-spawn",
+  // "terminal.integrated.profiles.linux": {
+  //   "bash-flatpak-spawn": {
+  //     "path": "/usr/bin/flatpak-spawn",
+  //     "args": [
+  //       "--host",
+  //       "--env=TERM=xterm-256color",
+  //       "bash"
+  //     ]
+  //   }
+  // },
+  "markdown.occurrencesHighlight.enabled": true,
+  "markdown.updateLinksOnFileMove.enabled": "always",
+  "markdown.validate.enabled": true,
+  "markdown.validate.fileLinks.enabled": "error",
+  "markdown.validate.referenceLinks.enabled": "error",
+  "markdown.editor.pasteUrlAsFormattedLink.enabled": "smart",
+  "markdown.preview.fontSize": 16,
+  "markdown.preview.breaks": false,
+  // "[markdown]": {
+  //   "editor.defaultFormatter": "yzhang.markdown-all-in-one"
+  // },
+  // ## End - Editor Settings
+  // @ Go Plugin
+  // "go.inferGopath": true,
+  "go.toolsManagement.autoUpdate": true,
+  // "go.alternateTools": {
+  //   "go": "~/Downloads/go/bin/go"
+  // },
+  // Obsolete
+  "go.languageServerExperimentalFeatures": {
+    "diagnostics": false
+  },
+  "go.testFlags": [
+    "-v"
+  ],
+  // ## End - Go Plugin
+  // @ CMake
+  "cmake.configureOnOpen": true,
+  // ## End - CMake
+  // @ Others
+  "MarkdownPaste.enableAI": false,
+  "markdown-preview-github-styles.colorTheme": "dark",
+  "cortex-debug.enableTelemetry": false,
+  "redhat.telemetry.enabled": false,
+  "C_Cpp.formatting": "clangFormat",
+  "dart.documentation": "full",
+  // ## End - Others
+  // @ Code Spell
+  "cSpell.enabled": true,
+  "cSpell.userWords": [],
+  // ## End - Code Spell
+}

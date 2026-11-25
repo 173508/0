@@ -1,0 +1,28 @@
+[?] Debian installer main menu
+
+Choose the next step in the install process:
+
+- Choose language
+- Access the installer using a Braille display
+- Configure the keyboard
+- Detect and mount installation media
+- Load installer components from installation media
+- Detect network hardware
+- Configure the network
+- Set up users and passwords
+- Configure the clock
+- Detect disks
+- Partition disks
+- Install the base system
+- Configure the package manager
+- Select and install software
+- Install the GRUB boot loader
+- Install the systemd-boot boot loader
+- Continue without boot loader
+- Finish the installation
+- Change debconf priority
+- Check the integrity of installation media
+- Save debug logs
+- Execute a shell
+- Eject a CD from the drive
+- Abort the installation

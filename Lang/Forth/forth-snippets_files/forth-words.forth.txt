@@ -1,0 +1,48 @@
+\ # Open in Editor Mode with 0 Block
+editor 0 list
+\ ## Block 0
+0 r ( v1.1 - 25 Jan 2023 : BLOCK 0 )
+1 r : hari-aum ." Hari Aum tat sat !" cr ;
+2 r : .c depth dup 0 > if for drop next else drop then ;
+3 r : .c2 depth dup 0 > if 0 do drop loop then ;
+4 r : ?DUP dup 0<> if dup then ;
+5 r : SIGNTEST DUP 0< IF ." NEGATIVE" ELSE DUP 0= 
+6 r    IF ." ZERO" ELSE ." POSITIVE" THEN THEN DROP ;
+7 r : ?STACK depth 0<> ;
+8 r : 2OVER1 over >R ROT DUP >R ROT ROT R> R> ;
+9 r   ( n l h -- {l <= n <= h} )
+10 r : range-check  ROT DUP ROT <= -ROT <= AND ;
+11 r   ( n l h -- {l > n > h} )
+12 r : range-out ROT DUP ROT > -ROT > AND ;
+13 r
+14 r
+15 r
+\ ## End Block 0
+\ ## Save the block 0
+flush
+\ ##
+editor 1 list
+\ ## Block 1
+0 r ( v1.1 - 25 Jan 2023 : BLOCK 1 )
+1 r
+2 r
+3 r
+4 r
+5 r
+6 r
+7 r
+8 r
+9 r
+10 r
+11 r
+12 r
+13 r
+14 r
+15 r
+\ ## End Block 1
+\ ## Save the block 1
+flush
+\ ### More Blocks to follow
+\ ## Save all Buffer
+save-buffers
+default-use

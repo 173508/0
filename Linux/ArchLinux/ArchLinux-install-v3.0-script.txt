@@ -1,0 +1,860 @@
+#!/bin/bash
+################################################################################
+#                                                                              #
+# Arch Linux Installation Script                                               #
+#                                                                              #
+################################################################################
+#
+# Revision History
+#^^^^^^^^^^^^^^^^^^
+# 1.0 - Initial Release - 2021-02-14
+# 2.0 - Enhanced - 2021-03-04
+# 2.1 - Live Install Modifications 2021-06-03
+#
+#------------------------------------------------------------------------------#
+# 1 - Download Install Media                                                   #
+#------------------------------------------------------------------------------#
+# Possible Links:
+# - File Format for ISO file: archlinux-YYYY.MM.DD-x86_64.iso
+# - File Format for sig file: archlinux-YYYY.MM.DD-x86_64.iso.sig
+# - http://mirror.cse.iitk.ac.in/archlinux/iso/latest/
+# - http://mirrors.evowise.com/archlinux/iso/latest/
+# - http://mirror.rackspace.com/archlinux/iso/latest/
+# - https://mirror.rackspace.com/archlinux/iso/latest/
+#------------------------------------------------------------------------------#
+# 2 - Verify Signature                                                         #
+#------------------------------------------------------------------------------#
+verify_ISOFileSignature () {
+	gpg --keyserver-options auto-key-retrieve \
+	--keyserver pgp.mit.edu \
+	--verify archlinux-YYYY.MM.DD-x86_64.iso.sig
+}
+#
+# Output
+#--------
+#  gpg: assuming signed data in 'archlinux-2021.02.01-x86_64.iso'
+#  gpg: Signature made Monday 01 February 2021 08:53:39 PM IST
+#  gpg:                using RSA key 4AA4767BBC9C4B1D18AE28B77F2D434B9741E8AC
+#  gpg: Good signature from "Pierre Schmitz <pierre@archlinux.de>" [unknown]
+#  gpg: WARNING: This key is not certified with a trusted signature!
+#  gpg:          There is no indication that the signature belongs to the owner.
+#  Primary key fingerprint: 4AA4 767B BC9C 4B1D 18AE  28B7 7F2D 434B 9741 E8AC
+#
+# Means this has been Successfully Verified !
+#
+# !! Note: It needs Internet to Work.
+#
+#------------------------------------------------------------------------------#
+# 3 - Prepare the System                                                       #
+#------------------------------------------------------------------------------#
+# 3.1 - Display Font
+#^^^^^^^^^^^^^^^^^^^^^
+# For Good Visibility we would set the Text Font to be a bit bigger
+# For More info list out '/usr/share/kbd/consolefonts'
+i_1_setFont24x32 () {
+	setfont solar24x32.psfu.gz
+}
+# Or for Slightly Smaller
+i_1_setFont12x22 () {
+	setfont sun12x22.psfu.gz
+}
+# For the fans of 'terminus-font'
+i_1_terminus_font () {
+	setfont ter-132n
+}
+# 3.2 - Set the key Map
+#^^^^^^^^^^^^^^^^^^^^^^^
+# In order to fine the Keymap
+i_2_find_us_Keymap () {
+	localectl list-keymaps | grep us
+}
+# Set US Keymap
+i_2_set_us_Keymap () {
+	loadkeys us
+}
+# 3.3 - Configure Wireless
+#^^^^^^^^^^^^^^^^^^^^^^^^^^
+i_3_WirelessConfig () {
+	cat <<EOF
+We would use the 'iw' Shell
+ iwctl <- Command is used to activate this shell
+
+For the default 'wlan0' adapter we would use the following commands
+ [iwd]# station wlan0 scan
+ [iwd]# station wlan0 get-networks
+ [iwd]# station wlan0 connect <your-desired-accesspoint-name>
+ [iwd]# station wlan0 show
+ [iwd]# exit
+EOF
+
+}
+# 3.4 - Check if we are Online Now
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+i_4_checkOnline () {
+	ping -c 2 archlinux.org       # Ping our favorite archlinux website
+	echo "------"
+	ip addr show                  # to See the network Interface IP Addresses
+	echo "------"
+}
+# 3.5 - Setup NTP
+#^^^^^^^^^^^^^^^^^
+i_5_setNTP () {
+	timedatectl set-ntp true      # Enable NTP
+	echo "------"
+	timedatectl status            # Check the Status
+	echo "------"
+	hwclock --systohc --utc       # Update Hardware Clock to UTC
+	echo "------"
+}
+# 3.6 - Update Repository Mirrors
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+i_6_UpdateMirrors () {
+	reflector \
+	--country India,Japan,'United States' \
+	--age 6 \
+	--protocol https \
+	--threads 4 \
+	--connection-timeout 2 \
+	--download-timeout 2 \
+	--verbose \
+	--sort rate \
+	--save /etc/pacman.d/mirrorlist
+	echo "------"
+	pacman -Syyy                             # Update the Repository
+	echo "------"
+	echo "Press Enter to view the Mirror List .. (Press q to quit the view)"
+	read
+	cat /etc/pacman.d/mirrorlist | less      # To Check if We Got the Things
+	echo "------"
+}
+# 3.7 - Partition the Disk
+#^^^^^^^^^^^^^^^^^^^^^^^^^^
+i_7_PartitionDisk_UEFI () {
+    # First Parameter Defines the Device Drive /dev/sdX
+	local DRIVE=${1:-/dev/vda}
+	local SWAP=${2:-8} # Second Parameter for Swap Size
+	echo "Press Enter to Cleanup All Partitions on UEFI Disk ${DRIVE}..."
+	read
+	sgdisk --zap-all $DRIVE # Clear All Partitions
+	echo "------"
+	echo "Press Enter to Partition the Disk ${DRIVE} with Swap ${SWAP}GiB..."
+	read
+	sgdisk --clear \
+	--new=1:0:+550MiB --typecode=1:ef00 --change-name=1:ArchEFI \
+	--new=2:0:+${SWAP}GiB --typecode=2:8200 --change-name=2:ArchSwap \
+	--new=3:0:0       --typecode=3:8300 --change-name=3:ArchRoot \
+	${DRIVE}
+	echo "------"
+	lsblk
+	echo "------"
+}
+i_7_PartitionDisk_NoSwap_UEFI () {
+    # First Parameter Defines the Device Drive /dev/sdX
+	local DRIVE=${1:-/dev/vda}
+	echo "Press Enter to Cleanup All Partitions on UEFI Disk ${DRIVE}..."
+	read
+	sgdisk --zap-all $DRIVE # Clear All Partitions
+	echo "------"
+	echo "Press Enter to Partition the Disk ${DRIVE} with No Swap..."
+	read
+	sgdisk --clear \
+	--new=1:0:+550MiB --typecode=1:ef00 --change-name=1:ArchEFI \
+	--new=2:0:0       --typecode=2:8300 --change-name=2:ArchRoot \
+	${DRIVE}
+	echo "------"
+	lsblk
+	echo "------"
+}
+i_7_PartitionDisk_NoSwap_BTRFS_UEFI () {
+    # First Parameter Defines the Device Drive /dev/sdX
+	local DRIVE=${1:-/dev/vda}
+	echo "Press Enter to Cleanup All Partitions on BTRFS UEFI Disk ${DRIVE}..."
+	read
+	sgdisk --zap-all $DRIVE # Clear All Partitions
+	echo "------"
+	echo "Press Enter to Partition the BTRFS Disk ${DRIVE} with No Swap..."
+	read
+	sgdisk --clear \
+	--new=1:0:+550MiB --typecode=1:ef00 --change-name=1:ArchEFI \
+	--new=2:0:0       --typecode=2:8300 --change-name=2:ArchRoot \
+	${DRIVE}
+	echo "------"
+	lsblk
+	echo "------"
+}
+i_7_PartitionDisk_BIOS () {
+    # First Parameter Defines the Device Drive /dev/sdX
+	local DRIVE=${1:-/dev/vda}
+	local SWAP=${2:-8} # Second Parameter for Swap Size
+	echo "Press Enter to Cleanup All Partitions on BIOS Disk ${DRIVE}..."
+	read
+	sgdisk --zap-all $DRIVE # Clear All Partitions
+	echo "------"
+	echo "Press Enter to Partition the Disk ${DRIVE} with Swap ${SWAP}GiB..."
+	read
+	parted ${DRIVE} -- mklabel msdos
+	parted ${DRIVE} -- mkpart primary 1MB -${SWAP}GiB
+	parted ${DRIVE} -- mkpart primary linux-swap -${SWAP}GiB 100%
+	echo "------"
+	lsblk
+	echo "------"
+}
+i_7_PartitionDisk_NoSwap_BIOS () {
+    # First Parameter Defines the Device Drive /dev/sdX
+	local DRIVE=${1:-/dev/vda}
+	echo "Press Enter to Cleanup All Partitions on BIOS Disk ${DRIVE}..."
+	read
+	sgdisk --zap-all $DRIVE # Clear All Partitions
+	echo "------"
+	echo "Press Enter to Partition the Disk ${DRIVE} with No Swap..."
+	read
+	parted ${DRIVE} -- mklabel msdos
+	parted ${DRIVE} -- mkpart primary 1MB 100%
+	echo "------"
+	lsblk
+	echo "------"
+}
+
+# 3.8 - Format the Disk
+#^^^^^^^^^^^^^^^^^^^^^^^
+i_8_FormatPartition_UEFI () {
+	echo "Press Enter to Format UEFI Named Partitions..."
+	read
+	mkfs.fat -F32 -n ArchEFI /dev/disk/by-partlabel/ArchEFI
+	echo "------"
+	mkswap -L ArchSwap /dev/disk/by-partlabel/ArchSwap
+	echo "------"
+	swapon /dev/disk/by-partlabel/ArchSwap
+	echo "------"
+	mkfs.ext4 -L ArchRoot /dev/disk/by-partlabel/ArchRoot
+	lsblk
+	echo "------"
+}
+i_8_FormatPartition_NoSwap_UEFI () {
+	echo "Press Enter to Format UEFI Named Partitions..."
+	read
+	mkfs.fat -F32 -n ArchEFI /dev/disk/by-partlabel/ArchEFI
+	echo "------"
+	mkfs.ext4 -L ArchRoot /dev/disk/by-partlabel/ArchRoot
+	lsblk
+	echo "------"
+}
+i_8_FormatPartition_NoSwap_BTRFS_UEFI () {
+	echo "Press Enter to Format BTRFS UEFI Named Partitions..."
+	read
+	mkfs.fat -F32 -n ArchEFI /dev/disk/by-partlabel/ArchEFI
+	echo "------"
+	mkfs.btrfs -f -L ArchRoot /dev/disk/by-partlabel/ArchRoot
+	echo "------"
+	lsblk
+	echo "------"
+}
+i_8_FormatPartition_BIOS () {
+	local DRIVE=${1:-/dev/vda}	# First Parameter Defines the Device Drive /dev/sdX
+	echo "Press Enter to Format BIOS Partitions in ${DRIVE}..."
+	read
+	mkswap -L ArchSwap ${DRIVE}2
+	echo "------"
+	swapon ${DRIVE}2
+	echo "------"
+	mkfs.ext4 -L ArchRoot ${DRIVE}1
+	lsblk
+	echo "------"
+}
+i_8_FormatPartition_NoSwap_BIOS () {
+	echo "Press Enter to Format BIOS Partitions in ${DRIVE}..."
+	read
+	mkfs.ext4 -L ArchRoot ${DRIVE}1
+	lsblk
+	echo "------"
+}
+# 3.9 - Mount the Partitions
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+i_9_MountPartitions_UEFI () {
+	mount /dev/disk/by-partlabel/ArchRoot /mnt
+	echo "------"
+	mkdir /mnt/boot
+	mount /dev/disk/by-partlabel/ArchEFI /mnt/boot
+	echo "------"
+	lsblk
+	echo "------"
+}
+i_9_MountPartitions_BTRFS_UEFI () {
+	mount /dev/disk/by-partlabel/ArchRoot /mnt
+	echo "------"
+	echo "Create the Subvolumes for BTRFS"
+	cd /mnt
+	btrfs subvolume create @
+	btrfs subvolume create @home
+	btrfs subvolume create @var
+	echo "------"
+	echo " Here are the created Subvolumes for BTRFS"
+	ls
+	echo "------"
+	cd
+	umount /mnt
+	echo " Mounting the Subvolumes"
+	mount -o noatime,compress=zstd,space_cache,discard=async,subvol=@ /dev/disk/by-partlabel/ArchRoot /mnt
+	mkdir /mnt/{boot,home,var}
+	mount -o noatime,compress=zstd,space_cache,discard=async,subvol=@home /dev/disk/by-partlabel/ArchRoot /mnt/home
+	mount -o noatime,compress=zstd,space_cache,discard=async,subvol=@var /dev/disk/by-partlabel/ArchRoot /mnt/var
+	mount /dev/disk/by-partlabel/ArchEFI /mnt/boot
+	echo "------"
+	lsblk
+	echo "------"
+}
+i_9_MountPartitions_BIOS () {
+	local DRIVE=${1:-/dev/vda}	# First Parameter Defines the Device Drive /dev/sdX
+	echo "Press Enter to Mount BIOS Partitions in ${DRIVE}..."
+	read
+	mount ${DRIVE}1 /mnt
+	echo "------"
+	lsblk
+	echo "------"
+}
+# 3.10 - Bootstrap the Installation
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+i_10_BootstrapMount_AMD () {
+	echo "Press Enter to Begin Pacstrap of /mnt ..."
+	read
+	pacstrap /mnt base linux-lts linux-firmware git vim amd-ucode
+	echo "------"
+	df -h
+	echo "------"
+}
+i_10_BootstrapMount_Intel () {
+	echo "Press Enter to Begin Pacstrap of /mnt ..."
+	read
+	pacstrap /mnt base linux-lts linux-firmware git vim intel-ucode
+	echo "------"
+	df -h
+	echo "------"
+}
+i_10_BootstrapMount_BTRFS_AMD () {
+	echo "Press Enter to Begin Pacstrap of /mnt ..."
+	read
+	pacstrap /mnt base linux-lts linux-firmware git vim amd-ucode btrfs-progs
+	echo "------"
+	df -h
+	echo "------"
+}
+i_10_BootstrapMount_BTRFS_Intel () {
+	echo "Press Enter to Begin Pacstrap of /mnt ..."
+	read
+	pacstrap /mnt base linux-lts linux-firmware git vim intel-ucode btrfs-progs
+	echo "------"
+	df -h
+	echo "------"
+}
+
+# 3.11 - Generate the FSTAB for the system
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+i_11_Gen_fstab_Mount () {
+	genfstab -U /mnt >> /mnt/etc/fstab
+	echo "------"
+	echo "Press Enter to view the fstab .. (Press q to quit the view)"
+	read
+	cat /mnt/etc/fstab | less
+	echo "------"
+}
+#------------------------------------------------------------------------------
+#
+# 4 - Into the System
+#
+#------------------------------------------------------------------------------
+# 4.1 - Enter into the new System
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+i_12_EnterMount () {
+	echo "Press Enter to Enter the Install /mnt..."
+	read
+	cp Arch-Install.txt /mnt/
+	echo "------"
+	arch-chroot /mnt
+}
+# 4.2 - Set TimeZone and Clock
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+findTimeZones () {
+	timedatectl list-timezones | grep Kolkata
+	echo "------"
+}
+i_13_SetTimeZone () {
+	ln -sf /usr/share/zoneinfo/Asia/Kolkata /etc/localtime
+	echo "------"
+	hwclock --systohc --utc
+	date
+	echo "------"
+	timedatectl status
+	echo "------"
+}
+# 4.3 - Setup Locale
+#^^^^^^^^^^^^^^^^^^^^
+i_14_SetLocaleConfig () {
+	sed -i 's/#en_US.U/en_US.U/1' /etc/locale.gen	# For Normal English Use
+	sed -i 's/#en_IN/en_IN/1' /etc/locale.gen     	# For Bharat Use
+	echo "KEYMAP=us" > /etc/vconsole.conf		# For the Console
+	echo "LANG=en_US.UTF-8" > /etc/locale.conf	# To Configure System
+	echo "LC_ADDRESS=en_IN" >> /etc/locale.conf
+	echo "LC_IDENTIFICATION=en_IN" >> /etc/locale.conf
+	echo "LC_MEASUREMENT=en_IN" >> /etc/locale.conf
+	echo "LC_MONETARY=en_IN" >> /etc/locale.conf
+	echo "LC_NAME=en_IN" >> /etc/locale.conf
+	echo "LC_NUMERIC=en_IN" >> /etc/locale.conf
+	echo "LC_PAPER=en_IN" >> /etc/locale.conf
+	echo "LC_TELEPHONE=en_IN" >> /etc/locale.conf
+	echo "LC_TIME=en_IN" >> /etc/locale.conf
+	locale-gen
+	echo "------"
+}
+# 4.4 Configure Hostname
+#^^^^^^^^^^^^^^^^^^^^^^^^
+i_15_SetHostName () {
+	local HOST=${1:-arch}	# First parameter is Host Name
+	echo "Press Enter to Set the Hostname as : $HOST"
+	read
+	echo -n "${HOST}" > /etc/hostname
+	echo -e "\t127.0.0.1\tlocalhost" >> /etc/hosts
+	echo -e "\t::1\t\tlocalhost" >> /etc/hosts
+	echo -e "\t127.0.1.1\t${HOST}.localdomain ${HOST}" >> /etc/hosts
+	echo "------"
+	cat /etc/hosts
+	echo "------"
+}
+# 4.5 Configure Root Password
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+i_16_SetRootPassword () {
+	passwd
+	echo "------"
+}
+# 4.6 Install the Basic System Utilities
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_i_17_InstallBaseSystem_Init() {
+	pacman -S grub efibootmgr reflector os-prober \
+	gvfs gvfs-smb ntfs-3g mtools dosfstools exfatprogs rsync \
+	udiskie udisks2 usbutils p7zip \
+	networkmanager network-manager-applet dialog wpa_supplicant \
+    avahi nfs-utils \
+	inetutils dnsutils openssh openbsd-netcat iptables-nft ipset \
+    firewalld nss-mdns \
+	acpi acpi_call tlp acpid lm_sensors hddtemp smartmontools \
+	base-devel linux-headers curl wget bat nano terminus-font bash-completion \
+	bluez bluez-utils cups hplip \
+	restic \
+	xdg-utils xdg-user-dirs \
+	alsa-utils pipewire pipewire-alsa pipewire-pulse pipewire-jack \
+	sof-firmware $1
+	# pulseaudio pulseaudio-bluetooth
+}
+i_17_InstallBaseSystem () {
+	_i_17_InstallBaseSystem_Init
+	echo "------"
+	mkinitcpio -P
+	echo "------"
+}
+i_17_InstallBaseSystem_BTRFS () {
+	_i_17_InstallBaseSystem_Init grub-btrfs
+	echo "------"
+	mkinitcpio -P
+	echo "------"
+}
+# 4.7 Install Grub
+#^^^^^^^^^^^^^^^^^^
+i_18_InstallGrub_UEFI () {
+    # First Parameter Defines the Device Drive /dev/sdX
+	local DRIVE=${1:-/dev/vda}
+	echo "Press Enter to Write Bootloader UEFI Partitions in ${DRIVE}..."
+	read
+	grub-install --target=x86_64-efi \
+	--efi-directory=/boot --bootloader-id=ARCHLINUX
+	echo "------"
+	grub-mkconfig -o /boot/grub/grub.cfg
+	echo "------"
+}
+i_18_InstallGrub_BTRFS_UEFI () {
+    # First Parameter Defines the Device Drive /dev/sdX
+	local DRIVE=${1:-/dev/vda}
+	echo "Press Enter to Write Bootloader UEFI Partitions in ${DRIVE}..."
+	read
+	grub-install --target=x86_64-efi \
+	--efi-directory=/boot --bootloader-id=ARCHLINUX
+	echo "------"
+	grub-mkconfig -o /boot/grub/grub.cfg
+	echo "------"
+}
+i_18_InstallGrub_BIOS () {
+    # First Parameter Defines the Device Drive /dev/sdX
+	local DRIVE=${1:-/dev/vda}
+	echo "Press Enter to Write Bootloader BIOS Partitions in ${DRIVE}..."
+	read
+	grub-install --target=i386-pc ${DRIVE}
+	echo "------"
+	grub-mkconfig -o /boot/grub/grub.cfg
+	echo "------"
+}
+
+# 4.8 Enable Services
+#^^^^^^^^^^^^^^^^^^^^^
+i_19_EnableBaseServices () {
+	systemctl enable NetworkManager
+	echo "------"
+	systemctl enable bluetooth
+	echo "------"
+	systemctl enable cups
+	echo "------"
+	systemctl enable firewalld
+	echo "------"
+	systemctl enable acpid
+	echo "------"
+}
+
+# 4.9 Create the Local User
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^
+i_20_CreateUser () {
+	local USER=${1:-user} # First Parameter is the Username to be Created
+	echo "Press Enter to create user $USER ..."
+	read
+	useradd -m -g users \
+	-G wheel,storage,rfkill,power,lp,lock,uucp \
+	-s /bin/bash \
+	$USER
+	echo "------"
+	passwd $USER
+	echo "------"
+	echo "$USER ALL=(ALL) ALL" >> /etc/sudoers.d/$USER
+}
+# 4.10 Enable Wheel Privileges
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+i_21_EnableWheel () {
+	echo "Modify the Line - %wheel ALL=(ALL) ALL"
+	echo
+	echo "Press Enter to Begin Editing the File in Vim...."
+	read
+	EDITOR=vim visudo
+	echo "------"
+	printf "\e[1;32mDone! Type exit, umount -a and reboot.\e[0m"
+}
+# 4.11 Exit the Install Container And Reboot
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+i_22_ExitMount () {
+	exit 		# Exit the chroot
+}
+i_23_EndInstall () {
+	umount -a 	# Auto unmount the drives
+	echo "poweroff 	# Turn off machine"
+	echo "# Or"
+	echo "reboot 	# Reboot If you can yank out the Install media easily"
+	echo "------"
+}
+#------------------------------------------------------------------------------
+#
+# 5 - First Boot in the System
+#
+#------------------------------------------------------------------------------
+# 5.1 - Display Font
+#^^^^^^^^^^^^^^^^^^^^^
+# For Good Visibility we would set the Text Font to be a bit bigger
+c_1_setFont24x32 () {
+	sudo setfont solar24x32.psfu.gz
+}
+# Or for Slightly Smaller
+c_1_setFont12x22 () {
+	sudo setfont sun12x22.psfu.gz
+}
+# For the fans of 'terminus-font'
+c_1_terminus_font () {
+	sudo setfont ter-132n
+}
+# 5.2 - Setup Network
+#^^^^^^^^^^^^^^^^^^^^^^
+c_2_ConfigNetwork () {
+	sudo nmtui
+}
+c_3_CheckOnline () {
+	ping -c 2 archlinux.org	# Ping our favorite archlinux website
+	echo "------"
+	ip addr show		# to See the network Interface IP Addresses
+	echo "------"
+}
+# Setup NTP if needed
+c_4_SetNTP () {
+	timedatectl set-ntp true      # Enable NTP
+	echo "------"
+	sudo hwclock --systohc --utc  # Set Hardware Clock to UTC
+	date
+	echo "------"
+	timedatectl status            # Check the Status
+	echo "------"
+}
+# 5.3 - Update the Mirror List and Activate Update Service
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+c_5_UpdateMirrors () {
+	sudo reflector \
+	--country India,Japan,'United States' \
+	--age 6 \
+	--protocol https \
+	--threads 4 \
+	--connection-timeout 2 \
+	--download-timeout 2 \
+	--verbose \
+	--sort rate \
+	--save /etc/pacman.d/mirrorlist
+	echo "------"
+	sudo pacman -Syy                    # Update the Repository
+	echo "------"
+	sudo systemctl enable --now reflector.timer
+	echo "------"
+	echo "Press Enter to view the Mirror List .. (Press q to quit the view)"
+	read
+	cat /etc/pacman.d/mirrorlist | less # To Check if We Got the Things
+	echo "------"
+}
+# For SSDs
+c_s_EnableSSD_Trim () {
+	sudo systemctl enable --now fstrim.timer
+	echo "------"
+}
+# For Laptops
+c_s_EnableTLP () {
+	sudo systemctl enable --now tlp
+	echo "------"
+}
+# Avahi
+c_s_EnableAvahi () {
+	sudo systemctl enable --now avahi-daemon
+	echo "------"
+}
+# SSH
+c_s_EnableSSH () {
+	sudo systemctl enable --now sshd
+	echo "------"
+}
+# 5.4 - Installing the yay or paru tools
+#^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+c_o_InstallYay() {
+	cd /tmp
+	git clone https://aur.archlinux.org/yay.git
+	cd yay
+	makepkg -si
+	cd
+	rm -rf /tmp/yay
+	echo "------"
+}
+c_o_InstallParu() {
+	cd /tmp
+	git clone https://aur.archlinux.org/paru-bin.git
+	cd paru-bin
+	makepkg -si
+	cd
+	rm -rf /tmp/paru-bin
+	echo "------"
+}
+#------------------------------------------------------------------------------
+#
+# Login Manager
+#
+#------------------------------------------------------------------------------
+c_p_LightDM () {
+	sudo pacman -S \
+	lightdm lightdm-gtk-greeter lightdm-gtk-greeter-settings light-locker
+	echo "------"
+	sudo systemctl enable lightdm
+	echo "------"
+}
+#------------------------------------------------------------------------------
+#
+# XFCE Install
+#
+#------------------------------------------------------------------------------
+c_p_XFCE () {
+	sudo pacman -S \
+	xorg xf86-input-libinput libinput \
+	xfce4 thunar-archive-plugin thunar-volman thunar-media-tags-plugin \
+	xfce4-notifyd xfce4-pulseaudio-plugin xfce4-sensors-plugin \
+	xfce4-wavelan-plugin xfce4-whiskermenu-plugin xfce4-screenshooter \
+	xfce4-mount-plugin xfce4-taskmanager
+	echo "------"
+}
+#------------------------------------------------------------------------------
+#
+# Others
+#
+#------------------------------------------------------------------------------
+c_q_disk_utils () {
+	sudo pacman -S \
+	gvfs-mtp gvfs-afc gvfs-google gvfs-gphoto2 gvfs-goa gvfs-nfs gvfs-smb \
+	engrampa karchive gnome-disk-utility \
+	gparted grsync
+	echo "------"
+}
+c_q_netowrk_utils () {
+	sudo pacman -S \
+	blueman ufw gufw firefox telegram-desktop thunderbird \
+	wireguard-dkms wireguard-tools
+	echo "------"
+	sudo systemctl enable ufw
+}
+c_q_audio_utils () {
+	sudo pacman -S \
+	alsa-firmware alsa-oss pulseaudio-alsa pavucontrol pamixer \
+	pulseaudio-equalizer pulseaudio-jack pulseaudio-zeroconf \
+	audacious audacity
+}
+c_q_video_utils () {
+	sudo pacman -S \
+	vlc simplescreenrecorder youtube-dl
+}
+c_q_dtp_utils () {
+	sudo pacman -S \
+	qpdfview pdfarranger simple-scan system-config-printer zbar \
+	hyphen-en hunspell mythes-en \
+	hunspell-en_US libreoffice-fresh languagetool \
+	gthumb inkscape gimp
+}
+c_q_dev_utils ()  {
+	sudo pacman -S speedcrunch gedit \
+	xchm bat tree patch rednotebook dmenu \
+	code make go nodejs cmake npm nano-syntax-highlighting tmux \
+	sqlitebrowser gitg meld python-pip python-virtualenv \
+	python-pygments
+}
+c_q_security_utils () {
+	sudo pacman -S \
+	keepassxc veracrypt bleachbit arch-audit
+}
+c_q_games () {
+	sudo pacman -S \
+	puzzles
+}
+c_q_embedded_utils () {
+	sudo pacman -S arduino arduino-avr-core arduino-builder \
+	moserial openocd picocom stlink python-pyserial
+}
+c_q_themes () {
+	sudo pacman -S \
+	materia-gtk-theme papirus-icon-theme
+}
+c_q_fonts () {
+	sudo pacman -S \
+	ttf-dejavu ttf-liberation noto-fonts ttf-roboto ttf-roboto-mono \
+	cantarell-fonts gsfonts noto-fonts-cjk noto-fonts-emoji \
+	ttf-font-awesome ttf-bitstream-vera ttf-inconsolata \
+	ttf-indic-otf ttf-droid unicode-emoji
+	echo "------"
+	# Fix the Emoji on Terminal
+	cat > local.conf <<EOL
+<?xml version="1.0"?>
+<!DOCTYPE fontconfig SYSTEM "fonts.dtd">
+<fontconfig>
+ <alias>
+   <family>sans-serif</family>
+   <prefer>
+     <family>Noto Sans</family>
+     <family>Noto Color Emoji</family>
+     <family>Noto Emoji</family>
+     <family>DejaVu Sans</family>
+   </prefer>
+ </alias>
+
+ <alias>
+   <family>serif</family>
+   <prefer>
+     <family>Noto Serif</family>
+     <family>Noto Color Emoji</family>
+     <family>Noto Emoji</family>
+     <family>DejaVu Serif</family>
+   </prefer>
+ </alias>
+
+ <alias>
+  <family>monospace</family>
+  <prefer>
+    <family>Noto Mono</family>
+    <family>Noto Color Emoji</family>
+    <family>Noto Emoji</family>
+   </prefer>
+ </alias>
+</fontconfig>
+EOL
+	sudo mv local.conf /etc/fonts/
+	echo "------"
+}
+c_q_BharatRupeeKeyboard () {
+	cp /etc/X11/xinit/xinitrc ~/.xprofile
+	# For Bharat Keyboard with Rupee Sign
+	echo "setxkbmap -layout in -model pc105 -variant eng &" >> ~/.xprofile
+	#echo "exec dbus-launch --sh-syntax xfce4-session" >> ~/.xinitrc
+	sed -i 's/^twm &/#twm &/1' ~/.xprofile
+	sed -i 's/^xclock -geometry/#xclock -geometry/1' ~/.xprofile
+	sed -i 's/^xterm -geometry/#xterm -geometry/g' ~/.xprofile
+	sed -i 's/^exec xterm/#exec xterm/g' ~/.xprofile
+	#sed -i 's/exec/setxkbmap -layout in -model pc105 -variant eng &\nexec/1' \
+	#~/.xinitrc
+	#echo "------"
+}
+c_q_wallpapers () {
+	sudo pacman -S archlinux-wallpaper
+}
+c_q_driver_nVidia () {
+	sudo pacman -S nvidia-lts nvidia-utils nvidia-settings
+}
+c_q_driver_Intel () {
+	sudo pacman -S xf86-video-intel
+}
+c_q_ucode_Intel () {
+	sudo pacman -S intel-ucode
+}
+c_q_ucode_AMD () {
+	sudo pacman -S amd-ucode
+}
+c_q_driver_AMDBuiltInGPU () {
+	sudo pacman -S xf86-video-amdgpu
+}
+c_q_driver_ATI () {
+	sudo pacman -S xf86-video-ati
+}
+c_q_driver_OpenSourceNVIDIA () {
+	sudo pacman -S xf86-video-noveau
+}
+# For VMs
+c_q_spice_agent () {
+	sudo pacman -S spice-vdagent
+}
+# For Docker
+c_q_docker () {
+	sudo pacman -S docker
+	sudo usermod -aG docker $(whoami)
+}
+# For Virtmanager KVM QEMU
+c_q_kvm () {
+	set -x
+	sudo pacman -S qemu qemu-arch-extra edk2-ovmf bridge-utils dnsmasq vde2 \
+ 	openbsd-netcat ebtables iptables virt-manager virt-viewer
+ 	echo "------"
+ 	# Enable Auto-Start of the Service
+	sudo systemctl enable libvirtd.service
+	echo "------"
+	echo "unix_sock_group = \"libvirt\"" | sudo tee -a /etc/libvirt/libvirtd.conf
+	echo "unix_sock_rw_perms = \"0770\"" | sudo tee -a /etc/libvirt/libvirtd.conf
+	echo "------"
+	cat > br10.xml <<EOL
+<network>
+  <name>br10</name>
+  <forward mode='nat'>
+    <nat>
+      <port start='1024' end='65535'/>
+    </nat>
+  </forward>
+  <bridge name='br10' stp='on' delay='0'/>
+  <ip address='192.168.72.1' netmask='255.255.255.0'>
+    <dhcp>
+      <range start='192.168.72.50' end='192.168.72.200'/>
+    </dhcp>
+  </ip>
+</network>
+EOL
+	#sudo virsh net-define br10.xml
+	echo "------"
+	sudo usermod -a -G libvirt $(whoami)
+}
+c_q_Enable_KVM_network () {
+	sudo virsh net-define br10.xml
+}
